@@ -21,7 +21,7 @@ pipeline {
 
         stage('Lint with Ruff') {
             steps {
-                sh 'poetry run ruff'
+                sh 'poetry run ruff check .'
             }
         }
 
