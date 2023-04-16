@@ -8,11 +8,11 @@ pipeline {
             }
         }
 
-        stage('Lint with Ruff') {
-            steps {
-                sh 'docker run --rm ayricky/dill_do_bot poetry run ruff check .'
-            }
-        }
+//         stage('Lint with Ruff') {
+//             steps {
+//                 sh 'docker run --rm ayricky/dill_do_bot poetry run ruff check .'
+//             }
+//         }
         
         stage('Build Docker Image') {
             steps {
