@@ -15,7 +15,9 @@ pipeline {
                         sh 'curl -sSL https://install.python-poetry.org | python3 -'
                     }
                 }
-                sh 'poetry install'
+                withEnv(["PATH+POETRY=${env.HOME}/.local/bin"]) {
+                    sh 'poetry install'
+                }
             }
         }
 
