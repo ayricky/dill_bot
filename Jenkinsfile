@@ -31,9 +31,11 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'rsync -avz --delete --exclude ".git" --exclude "__pycache__" --exclude "venv" . ~/discord_bots/dill_do_bot'
+                sh 'mkdir -p /var/lib/jenkins/discord_bots'
+                sh 'rsync -avz --delete --exclude ".git" --exclude "__pycache__" --exclude "venv" . /var/lib/jenkins/discord_bots/dill_do_bot'
             }
         }
+
 
         // stage('Run Bot') {
         //     steps {
