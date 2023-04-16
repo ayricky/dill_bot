@@ -4,10 +4,7 @@ FROM python:3.11
 WORKDIR /app
 
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Add Poetry to PATH
-ENV PATH="/usr/local/bin/poetry:${PATH}"
+RUN pip install poetry
 
 # Copy the pyproject.toml and poetry.lock files to the container
 COPY pyproject.toml poetry.lock ./
