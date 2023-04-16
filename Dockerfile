@@ -6,6 +6,9 @@ WORKDIR /app
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
+# Add Poetry to PATH
+ENV PATH="/root/.poetry/bin:${PATH}"
+
 # Copy the pyproject.toml and poetry.lock files to the container
 COPY pyproject.toml poetry.lock ./
 
