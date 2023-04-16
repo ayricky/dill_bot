@@ -23,7 +23,9 @@ pipeline {
 
         stage('Lint with Ruff') {
             steps {
-                sh 'poetry run ruff check .'
+                withEnv(["PATH+POETRY=${env.HOME}/.local/bin"]) {
+                    sh 'poetry run ruff check .'
+                }
             }
         }
 
