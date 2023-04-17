@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        GITHUB_TOKEN = credentials('ayricky-github')
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -14,26 +18,22 @@ pipeline {
             }
         }
 
-        stage('Create Tag and Push') {
+        stage('Create Release') {
             steps {
                 script {
-                    // Get the current commit hash
-                    def commitHash = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+                    // Calculate the release version
+                    def releaseVersion = "v0.${env.BUILD_NUMBER}"
 
-                    // Get the Jenkins build number
-                    def buildNumber = env.BUILD_NUMBER
-
-                    // Set your Git user and email (replace with your actual user and email)
-                    sh 'git config user.name "Ricardo Mariano"'
-                    sh 'git config user.email "marianoricardo97@gmail.com"'
-
-                    // Create the tag
-                    sh "git tag -a -f -m 'Jenkins Build #${buildNumber}' jenkins-dill_do_bot-${buildNumber} ${commitHash}"
-                    
-                    // Push the tag to the remote repository
-                    sh "git push origin jenkins-dill_do_bot-${buildNumber}"
+                    // Create the release using the GitHub REST API
+                    sh(script: """
+                        curl -s -X POST \
+                        -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -H "Content-Type: application/json" \
+                        -d '{ "tag_name": "${releaseVersion}", "name": "${releaseVersion}", "body": "Release ${releaseVersion}", "target_commitish": "main" }' \
+                        https://api.github.com/repos/ayricky/dill_do_bot/releases
+                    """)
                 }
-            } // Missing closing brace added here
+            }
         }
 
         stage('Deploy') {
