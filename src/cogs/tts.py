@@ -7,11 +7,10 @@ from elevenlabslib import ElevenLabsUser
 
 log = logging.getLogger(__name__)
 
-
 class TTSCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.user = ElevenLabsUser(os.getenv("elevenlabs_token"))
+        self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
         self.voice = self.user.get_voices_by_name("testing")[0]
 
     async def ensure_voice(self, ctx):

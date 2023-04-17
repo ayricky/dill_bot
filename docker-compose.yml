@@ -1,0 +1,8 @@
+version: '3.9'
+
+services:
+  bot:
+    image: ayricky/dill_do_bot:latest
+    build: .
+    env_file:
+      - .env

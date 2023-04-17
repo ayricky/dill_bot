@@ -3,6 +3,10 @@ FROM python:3.11
 # Set the working directory
 WORKDIR /app
 
+# Install system-level dependencies
+COPY install_dependencies.sh .
+RUN ./install_dependencies.sh
+
 # Install Poetry
 RUN pip install poetry
 
@@ -10,7 +14,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock ./
 
 # Install dependencies using Poetry
-RUN poetry config virtualenvs.create false && poetry install --no-dev
+RUN poetry config virtualenvs.create false && poetry install --only main
 
 # Copy the rest of the application files
 COPY . .

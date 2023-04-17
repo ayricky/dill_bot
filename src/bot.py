@@ -59,6 +59,6 @@ if __name__ == "__main__":
     configure()
     bot = MyBot()
     bot.run(
-        os.getenv("discord_token"),
+        os.getenv("DISCORD_TOKEN"),
         root_logger=True,
     )

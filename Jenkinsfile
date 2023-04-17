@@ -8,22 +8,17 @@ pipeline {
             }
         }
 
-//         stage('Lint with Ruff') {
-//             steps {
-//                 sh 'docker run --rm ayricky/dill_do_bot poetry run ruff check .'
-//             }
-//         }
-        
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ayricky/dill_do_bot .'
+                sh 'docker-compose build'
             }
         }
 
         stage('Deploy') {
             steps {
                 sh 'mkdir -p /var/lib/jenkins/discord_bots'
-                sh 'docker cp $(docker create --rm ayricky/dill_do_bot):/app /var/lib/jenkins/discord_bots/dill_do_bot'
+                sh 'docker-compose down -v'
+                sh 'docker-compose up -d'
             }
         }
     }
