@@ -13,10 +13,16 @@ class TTSCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
-        self.all_voices = {voice.get_name(): voice for voice in self.user.get_all_voices()}
-        self.all_custom_voices = {name: voice for name, voice in self.all_voices.items(
-        ) if name not in ['Rachel', 'Domi', 'Bella', 'Antoni', 'Elli', 'Josh', 'Arnold', 'Adam', 'Sam']}
         self.voice = self.all_voices['Pokimane']  # Set Pokimane by default
+    
+    @proeperty
+    def all_voices(self):
+        return {voice.get_name(): voice for voice in self.user.get_all_voices()}
+        
+    @proeperty
+    def all_custom_voices(self):
+        return {name: voice for name, voice in self.all_voices.items(
+        ) if name not in ['Rachel', 'Domi', 'Bella', 'Antoni', 'Elli', 'Josh', 'Arnold', 'Adam', 'Sam']}
 
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
