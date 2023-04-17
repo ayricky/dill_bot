@@ -2,16 +2,21 @@ import logging
 import os
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from elevenlabslib import ElevenLabsUser
 
 log = logging.getLogger(__name__)
 
+
 class TTSCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
-        self.voice = self.user.get_voices_by_name("testing")[0]
+        self.all_voices = {voice.get_name(): voice for voice in self.user.get_all_voices()}
+        self.all_custom_voices = {name: voice for name, voice in self.all_voices.items(
+        ) if name not in ['Rachel', 'Domi', 'Bella', 'Antoni', 'Elli', 'Josh', 'Arnold', 'Adam', 'Sam']}
+        self.voice = self.all_voices['Pokimane']  # Set Pokimane by default
 
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
@@ -22,6 +27,22 @@ class TTSCog(commands.Cog):
                 raise commands.CommandError("Author not connected to a voice channel.")
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
+
+    @app_commands.command(name="select_voice", description="Select custom voice")
+    async def select_voice(self, interaction: discord.Interaction, item: str):
+        valid_items = [name for name in self.all_custom_voices.keys()]
+        if item not in valid_items:
+            await interaction.response.send_message("Invalid voice name, please select a suggested voice", ephemeral=True)
+            return
+
+        self.voice = self.all_custom_voices[item]
+        await interaction.response.send_message(f"Voice set to {item}", ephemeral=True)
+
+    @select_voice.autocomplete(name="item")
+    async def skin_autocomplete(self, interaction: discord.Interaction, value: str):
+        suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
+
+        return suggestions
 
     @commands.Cog.listener("on_message")
     async def tts(self, message):
