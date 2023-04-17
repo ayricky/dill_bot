@@ -5,6 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'git@github.com:ayricky/dill_do_bot.git', credentialsId: 'jenkins-git-ssh'
+                sh 'cp /home/ayrickypi/secret/dill_do_bot.env .env'
             }
         }
 
