@@ -15,11 +15,11 @@ class TTSCog(commands.Cog):
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
         self.voice = self.all_voices['Pokimane']  # Set Pokimane by default
     
-    @proeperty
+    @property
     def all_voices(self):
         return {voice.get_name(): voice for voice in self.user.get_all_voices()}
-        
-    @proeperty
+
+    @property
     def all_custom_voices(self):
         return {name: voice for name, voice in self.all_voices.items(
         ) if name not in ['Rachel', 'Domi', 'Bella', 'Antoni', 'Elli', 'Josh', 'Arnold', 'Adam', 'Sam']}
@@ -47,6 +47,7 @@ class TTSCog(commands.Cog):
     @select_voice.autocomplete(name="item")
     async def skin_autocomplete(self, interaction: discord.Interaction, value: str):
         suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
+        breakpoint()
 
         return suggestions
 
