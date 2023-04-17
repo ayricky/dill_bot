@@ -8,7 +8,6 @@ pipeline {
                 sh 'cp /home/ayrickypi/secret/dill_do_bot.env .env'
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker-compose build'
@@ -34,6 +33,8 @@ pipeline {
                     // Push the tag to the remote repository
                     sh "git push origin jenkins-dill_do_bot-${buildNumber}"
                 }
+            } // Missing closing brace added here
+        }
 
         stage('Deploy') {
             steps {
