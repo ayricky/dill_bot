@@ -42,11 +42,11 @@ class TTSCog(commands.Cog):
         valid_items = [name for name in self.all_custom_voices.keys()]
 
         if item not in valid_items:
-            await interaction.followup.send("Invalid voice name, please select a suggested voice", ephemeral=True)
+            await interaction.followup.send("Invalid voice name, please select a suggested voice")
             return
 
         self.voice = self.all_custom_voices[item]
-        await interaction.followup.send(f"Voice set to {item}", ephemeral=True)
+        await interaction.followup.send(f"Voice set to {item}")
 
 
     @select_voice.autocomplete(name="item")
