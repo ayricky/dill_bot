@@ -47,7 +47,6 @@ class TTSCog(commands.Cog):
     @select_voice.autocomplete(name="item")
     async def skin_autocomplete(self, interaction: discord.Interaction, value: str):
         suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
-        breakpoint()
 
         return suggestions
 
