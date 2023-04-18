@@ -36,13 +36,18 @@ class TTSCog(commands.Cog):
 
     @app_commands.command(name="select_voice", description="Select custom voice")
     async def select_voice(self, interaction: discord.Interaction, item: str):
+        # Acknowledge the interaction
+        await interaction.response.defer(ephemeral=True)
+
         valid_items = [name for name in self.all_custom_voices.keys()]
+
         if item not in valid_items:
-            await interaction.response.send_message("Invalid voice name, please select a suggested voice", ephemeral=True)
+            await interaction.followup.send("Invalid voice name, please select a suggested voice", ephemeral=True)
             return
 
         self.voice = self.all_custom_voices[item]
-        await interaction.response.send_message(f"Voice set to {item}", ephemeral=True)
+        await interaction.followup.send(f"Voice set to {item}", ephemeral=True)
+
 
     @select_voice.autocomplete(name="item")
     async def skin_autocomplete(self, interaction: discord.Interaction, value: str):
