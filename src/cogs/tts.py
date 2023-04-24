@@ -63,7 +63,7 @@ class TTSCog(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def tts(self, message):
-        if message.channel.id != 1097704287578112101:
+        if message.channel.id != 1081842185135198208:
             return
 
         ctx = await self.bot.get_context(message)
