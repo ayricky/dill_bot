@@ -1,9 +1,10 @@
 import sqlite3
 import logging
 import os
+from random import randint
 
 import discord
-from discord import app_commands
+from discord import app_commands, Embed
 from discord.ext import commands
 from elevenlabslib import ElevenLabsUser
 
@@ -110,14 +111,21 @@ class TTSCog(commands.Cog):
         await interaction.response.defer()
 
         cursor = self.db_conn.cursor()
-        cursor.execute("SELECT audio FROM tts_history WHERE id = ?", (tts_audio,))
-        audio = cursor.fetchall()[0][0]
+        cursor.execute("SELECT audio, content FROM tts_history WHERE id = ?", (tts_audio,))
+        query = cursor.fetchall()
+        audio = query[0][0]
+        message = query[0][1]
 
         # Write audio to a .wav file
         with open("ElevenLabs_tts.wav", mode="wb") as f:
             f.write(audio)
 
         await self.ensure_voice_interaction(interaction)
+
+        embed = Embed(title="Playing TTS History", color=randint(0, 0xFFFFFF))
+        embed.add_field(name="Voice", value=voice, inline=False)
+        embed.add_field(name="TTS", value=message, inline=False)
+        await interaction.followup.send(embed=embed)
 
         # Play audio
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("ElevenLabs_tts.wav"))
