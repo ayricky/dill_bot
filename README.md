@@ -1,2 +1,2 @@
-# dill_do_bot
+# dill_bot
 Custom discord bot for personal server
