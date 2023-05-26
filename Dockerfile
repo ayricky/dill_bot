@@ -4,8 +4,10 @@ FROM python:3.11
 WORKDIR /app
 
 # Install system-level dependencies
-COPY install_dependencies.sh .
-RUN ./install_dependencies.sh
+RUN apt-get update && \
+    apt-get install -y libsndfile1 libportaudio2 portaudio19-dev ffmpeg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
 RUN pip install poetry
