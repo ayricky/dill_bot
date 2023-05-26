@@ -17,23 +17,34 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build Docker image
-        run: |
-          docker build . --file Dockerfile --tag ${{ github.repository }}:${{ github.sha }}
+      - name: Super Linter
+        uses: github/super-linter@v4
 
-      - name: Create Tag
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          git tag -a release-${{ github.sha }} -m "Release ${{ github.sha }}"
-          git push origin release-${{ github.sha }}
+      - name: Safety Check
+        uses: pyupio/safety-ci@master
+        env:
+          TOKEN: ${{ secrets.PYUP_TOKEN }}
 
-      - name: Create Release
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v2
         with:
-          files: |
-            path/to/release/files
+          context: .
+          push: true
+          tags: registry.your-server.com/dill_do_bot:latest
+
+
+      - name: Release Please
+        uses: google-github-actions/release-please-action@v2
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: release-${{ github.sha }}
-          draft: false
-          prerelease: false
+          release-type: python
+          package-name: "dill_do_bot"
+
+      - name: Notify local server
+        uses: distributhor/workflow-webhook@v1
+        env:
+          webhook_type: 'json'
+          webhook_url: ${{ secrets.WEBHOOK_URL}}
+          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+        with:
+          status: 'completed'

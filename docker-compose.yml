@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  discord-bot:
+    image: ayricky/dill_do_bot:latest
+    restart: always
+    volumes:
+      - ./bot-code:/bot-code
+    command: python /bot-code/bot.py
+
+  db:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: <your-db-password>
