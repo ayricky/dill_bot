@@ -2,9 +2,6 @@
 
 We welcome contributions to the Dill Bot project! If you'd like to contribute, please follow these guidelines:
 
-## Code of Conduct
-Please note that this project adheres to the [Contributor Covenant Code of Conduct](CONTRIBUTING/CODE_OF_CONDUCT.md). By participating in this project, you are expected to uphold this code of conduct. Please report any unacceptable behavior to the project maintainers.
-
 ## How to Contribute
 1. Fork the repository and create your branch from `main`.
 2. Make your changes or additions.
