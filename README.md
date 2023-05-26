@@ -1,4 +1,7 @@
 # Dill Bot
+![GitHub Actions](https://github.com/ayricky/dill_bot/actions/workflows/main.yml/badge.svg)
+![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg?logo=python&logoColor=white)
+
 Dill Bot is a custom Discord bot developed specifically for the Dill Do server.
 
 ## Getting Started
@@ -34,11 +37,6 @@ To manually deploy the bot, build the Docker image and run it:
 docker build . --file Dockerfile --tag dill_bot
 docker run --name dill_bot_instance dill_bot
 ``` 
-
-## Built With
-- Python
-- Docker
-- GitHub Actions
 
 ## Contributing
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
