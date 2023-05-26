@@ -149,9 +149,9 @@ class TTSCog(commands.Cog):
         query = cursor.fetchall()[::-1]
 
         if value == "":
-            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query][:24]
+            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query][:25]
         else:
-            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query if value.lower() in msg_audio[0].lower()][:24]
+            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query if value.lower() in msg_audio[0].lower()][:25]
 
         return suggestions
 
