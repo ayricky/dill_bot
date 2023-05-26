@@ -2,20 +2,38 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
 
-    - name: Build Docker image
-      run: |
-        docker build . --file Dockerfile --tag ${{ github.repository }}:${{ github.sha }}
+      - name: Build Docker image
+        run: |
+          docker build . --file Dockerfile --tag ${{ github.repository }}:${{ github.sha }}
+
+      - name: Create Tag
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git tag -a release-${{ github.sha }} -m "Release ${{ github.sha }}"
+          git push origin release-${{ github.sha }}
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            path/to/release/files
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: release-${{ github.sha }}
+          draft: false
+          prerelease: false

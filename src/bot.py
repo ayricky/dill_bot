@@ -13,7 +13,7 @@ def configure():
     load_dotenv()
 
 
-class MyBot(commands.Bot):
+class DillBot(commands.Bot):
     def __init__(self):
         allowed_mentions = discord.AllowedMentions(
             roles=False,
@@ -57,7 +57,7 @@ class MyBot(commands.Bot):
 
 if __name__ == "__main__":
     configure()
-    bot = MyBot()
+    bot = DillBot()
     bot.run(
         os.getenv("DISCORD_TOKEN"),
         root_logger=True,
