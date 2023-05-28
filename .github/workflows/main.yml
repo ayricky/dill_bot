@@ -9,7 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Super Linter
         uses: github/super-linter@v4
@@ -30,14 +31,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and push Docker images
+      - name: Build Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
-          push: true
-          tags: ${{ secrets.DOCKER_REGISTRY_URL }}/dill_bot:latest
+          push: false
+          load: true
+          tags: dill_bot:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          ELEVENLABS_TOKEN: ${{ secrets.ELEVENLABS_TOKEN }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} <<EOF
+          docker build -t dill_bot:latest .
+          docker stop dill_bot || true
+          docker rm dill_bot || true
+          docker run -d --name dill_bot -e DISCORD_TOKEN=$DISCORD_TOKEN -e ELEVENLABS_TOKEN=$ELEVENLABS_TOKEN dill_bot:latest
+          EOF
 
       - name: Release Please
         uses: google-github-actions/release-please-action@v2
