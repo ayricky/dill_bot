@@ -8,43 +8,35 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
         with:
-          python-version: '3.11'
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Super Linter
         uses: github/super-linter@v4
-
-      - name: Safety Check
-        uses: pyupio/safety-ci@master
-        env:
-          TOKEN: ${{ secrets.PYUP_TOKEN }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: registry.your-server.com/dill_do_bot:latest
-
+          tags: ${{ secrets.DOCKER_REGISTRY_URL }}/dill_bot:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Release Please
         uses: google-github-actions/release-please-action@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: python
-          package-name: "dill_do_bot"
-
-      - name: Notify local server
-        uses: distributhor/workflow-webhook@v1
-        env:
-          webhook_type: 'json'
-          webhook_url: ${{ secrets.WEBHOOK_URL}}
-          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
-        with:
-          status: 'completed'
+          package-name: "dill_bot"

@@ -1,16 +1,25 @@
 version: '3.9'
 services:
-  discord-bot:
-    image: ayricky/dill_do_bot:latest
+  dill_bot:
+    image: ./dill_bot
     restart: always
     volumes:
-      - ./bot-code:/bot-code
-    command: python /bot-code/bot.py
+      - ./dill_bot/src:/src
+    command: python /src/bot.py
+    depends_on:
+    - db
+    - redis
 
   db:
     image: postgres:latest
     restart: always
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - ./dill_bot/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: <your-db-password>
+      
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - ./dill_bot/redis:/data
