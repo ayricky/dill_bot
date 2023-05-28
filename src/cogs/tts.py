@@ -15,7 +15,7 @@ class TTSCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
-        self.voice = self.all_voices['Pokimane']
+        self.voice = self.all_voices["Pokimane"]
         self.voice_suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
         self.db_conn = self.init_db()
 
@@ -25,21 +25,25 @@ class TTSCog(commands.Cog):
 
     @property
     def all_custom_voices(self):
-        return {name: voice for name, voice in self.all_voices.items(
-        ) if name not in ['Rachel', 'Domi', 'Bella', 'Antoni', 'Elli', 'Josh', 'Arnold', 'Adam', 'Sam']}
+        return {
+            name: voice
+            for name, voice in self.all_voices.items()
+            if name not in ["Rachel", "Domi", "Bella", "Antoni", "Elli", "Josh", "Arnold", "Adam", "Sam"]
+        }
 
     def init_db(self):
         if not os.path.isfile("/data/tts_history.db"):
             conn = sqlite3.connect("/data/tts_history.db")
             cursor = conn.cursor()
-            cursor.execute('''CREATE TABLE tts_history
-                            (id INTEGER PRIMARY KEY, voice_initial_name TEXT, content TEXT, audio BLOB)''')
+            cursor.execute(
+                """CREATE TABLE tts_history
+                            (id INTEGER PRIMARY KEY, voice_initial_name TEXT, content TEXT, audio BLOB)"""
+            )
             conn.commit()
         else:
             conn = sqlite3.connect("/data/tts_history.db")
         return conn
 
-    
     async def ensure_voice_ctx(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
@@ -49,7 +53,7 @@ class TTSCog(commands.Cog):
                 raise commands.CommandError("Author not connected to a voice channel.")
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
-    
+
     async def ensure_voice_interaction(self, interaction: discord.Interaction):
         member = interaction.guild.get_member(interaction.user.id)
         if interaction.guild.voice_client is None:
@@ -60,7 +64,6 @@ class TTSCog(commands.Cog):
                 raise commands.CommandError("Author not connected to a voice channel.")
         elif interaction.guild.voice_client.is_playing():
             interaction.guild.voice_client.stop()
-
 
     @commands.Cog.listener("on_message")
     async def tts(self, message):
@@ -78,7 +81,10 @@ class TTSCog(commands.Cog):
 
             # Save to database
             cursor = self.db_conn.cursor()
-            cursor.execute("INSERT INTO tts_history (voice_initial_name, content, audio) VALUES (?, ?, ?)", (self.voice.initialName, message.content, tts_audio))
+            cursor.execute(
+                "INSERT INTO tts_history (voice_initial_name, content, audio) VALUES (?, ?, ?)",
+                (self.voice.initialName, message.content, tts_audio),
+            )
             self.db_conn.commit()
 
             # Write audio to a .wav file
@@ -137,21 +143,29 @@ class TTSCog(commands.Cog):
         cursor.execute("SELECT DISTINCT voice_initial_name FROM tts_history")
         voice_names = [row[0] for row in cursor.fetchall()]
 
-        suggestions = [app_commands.Choice(name=name, value=name) for name in voice_names if name.lower().startswith(value.lower())]
+        suggestions = [
+            app_commands.Choice(name=name, value=name) for name in voice_names if name.lower().startswith(value.lower())
+        ]
         return suggestions
-    
+
     @play_tts_history.autocomplete(name="tts_audio")
     async def play_history_message_autocomplete(self, interaction: discord.Interaction, value: str):
         selected_voice = interaction.namespace.voice
-        
+
         cursor = self.db_conn.cursor()
         cursor.execute("SELECT content, id FROM tts_history WHERE voice_initial_name = ?", (selected_voice,))
         query = cursor.fetchall()[::-1]
 
         if value == "":
-            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query][:25]
+            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query][
+                :25
+            ]
         else:
-            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query if value.lower() in msg_audio[0].lower()][:25]
+            suggestions = [
+                app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1]))
+                for msg_audio in query
+                if value.lower() in msg_audio[0].lower()
+            ][:25]
 
         return suggestions
 

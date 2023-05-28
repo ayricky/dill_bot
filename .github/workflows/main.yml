@@ -28,6 +28,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_PYTHON_BLACK: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: .github/linters/
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v2
