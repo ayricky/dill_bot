@@ -40,7 +40,7 @@ jobs:
         
       - name: Copy files to server
         run: |
-          scp -o StrictHostKeyChecking=no Dockerfile docker-compose.yml src/ pyproject.toml poetry.lock ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:prod/dill_bot/
+          scp -o StrictHostKeyChecking=no Dockerfile docker-compose.yml ./src/ pyproject.toml poetry.lock ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:prod/dill_bot/
 
       - name: Deploy to server
         env:
