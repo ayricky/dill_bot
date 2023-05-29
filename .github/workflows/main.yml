@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Super Linter
         uses: github/super-linter@v4
@@ -37,6 +37,10 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+      - name: Copy files to server
+        run: |
+          scp Dockerfile docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:prod/dill_bot/
 
       - name: Deploy to server
         env:
@@ -45,10 +49,10 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} <<EOF
-          cd dill_bot
+          cd prod/dill_bot
           docker pull ayricky/dill_bot:latest
           docker-compose down || true
-          docker-compose up --build -d
+          DISCORD_TOKEN=$DISCORD_TOKEN ELEVENLABS_TOKEN=$ELEVENLABS_TOKEN POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose up --build -d
           EOF
 
       - name: Release Please
