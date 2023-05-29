@@ -34,11 +34,7 @@ class TTSCog(commands.Cog):
 
     def init_db(self):
         conn = psycopg2.connect(
-            host="db",
-            port="5432",
-            dbname="dill_bot_db",
-            user="dill_bot",
-            password=os.getenv("POSTGRES_PASSWORD")
+            host="db", port="5432", dbname="dill_bot_db", user="dill_bot", password=os.getenv("POSTGRES_PASSWORD")
         )
         return conn
 
@@ -91,7 +87,6 @@ class TTSCog(commands.Cog):
         self.db_conn.commit()
         await self.write_audio_to_file(tts_audio)
 
-
     async def write_audio_to_file(self, tts_audio):
         async with aiofiles.open("ElevenLabs_tts.wav", mode="wb") as f:
             await f.write(tts_audio)
@@ -143,7 +138,9 @@ class TTSCog(commands.Cog):
             voice_names = [row[0] for row in cursor.fetchall()]
 
             suggestions = [
-                app_commands.Choice(name=name, value=name) for name in voice_names if name.lower().startswith(value.lower())
+                app_commands.Choice(name=name, value=name)
+                for name in voice_names
+                if name.lower().startswith(value.lower())
             ]
             return suggestions
 
@@ -156,7 +153,10 @@ class TTSCog(commands.Cog):
             query = cursor.fetchall()[::-1]
 
         if value == "":
-            suggestions = [app_commands.Choice(name=f"ID: {msg_audio[1]} | {msg_audio[0]}"[:99], value=str(msg_audio[1])) for msg_audio in query][:25]
+            suggestions = [
+                app_commands.Choice(name=f"ID: {msg_audio[1]} | {msg_audio[0]}"[:99], value=str(msg_audio[1]))
+                for msg_audio in query
+            ][:25]
         else:
             suggestions = [
                 app_commands.Choice(name=f"ID: {msg_audio[1]} | {msg_audio[0]}"[:99], value=str(msg_audio[1]))
