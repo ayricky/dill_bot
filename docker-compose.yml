@@ -2,7 +2,7 @@ version: '3.9'
 services:
   dill_bot:
     build: .
-    image: dill_bot:latest
+    image: ayricky/dill_bot:latest
     restart: always
     command: python ./src/bot.py
     environment:

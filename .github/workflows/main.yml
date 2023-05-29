@@ -40,7 +40,7 @@ jobs:
         
       - name: Copy files to server
         run: |
-          scp -o StrictHostKeyChecking=no Dockerfile docker-compose.yml ./src/ pyproject.toml poetry.lock ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:prod/dill_bot/
+          scp -o StrictHostKeyChecking=no docker-compose.yml pyproject.toml poetry.lock ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:prod/dill_bot/
 
       - name: Deploy to server
         env:
@@ -52,12 +52,5 @@ jobs:
           cd prod/dill_bot
           docker pull ayricky/dill_bot:latest
           docker-compose down || true
-          DISCORD_TOKEN=$DISCORD_TOKEN ELEVENLABS_TOKEN=$ELEVENLABS_TOKEN POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose up --build -d
+          DISCORD_TOKEN=$DISCORD_TOKEN ELEVENLABS_TOKEN=$ELEVENLABS_TOKEN POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose up -d
           EOF
-
-      - name: Release Please
-        uses: google-github-actions/release-please-action@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: python
-          package-name: "dill_bot"
