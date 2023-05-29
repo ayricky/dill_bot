@@ -4,13 +4,8 @@ import os
 import aiohttp
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
 log = logging.getLogger(__name__)
-
-
-def configure():
-    load_dotenv()
 
 
 class DillBot(commands.Bot):
@@ -56,7 +51,6 @@ class DillBot(commands.Bot):
 
 
 if __name__ == "__main__":
-    configure()
     bot = DillBot()
     bot.run(
         os.getenv("DISCORD_TOKEN"),

@@ -1,12 +1,13 @@
-import sqlite3
 import logging
 import os
 from random import randint
 
+import aiofiles
 import discord
 from discord import app_commands, Embed
 from discord.ext import commands
 from elevenlabslib import ElevenLabsUser
+import psycopg2
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class TTSCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
-        self.voice = self.all_voices["Pokimane"]
+        self.voice = self.all_voices["Joe Biden"]
         self.voice_suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
         self.db_conn = self.init_db()
 
@@ -32,16 +33,13 @@ class TTSCog(commands.Cog):
         }
 
     def init_db(self):
-        if not os.path.isfile("/data/tts_history.db"):
-            conn = sqlite3.connect("/data/tts_history.db")
-            cursor = conn.cursor()
-            cursor.execute(
-                """CREATE TABLE tts_history
-                            (id INTEGER PRIMARY KEY, voice_initial_name TEXT, content TEXT, audio BLOB)"""
-            )
-            conn.commit()
-        else:
-            conn = sqlite3.connect("/data/tts_history.db")
+        conn = psycopg2.connect(
+            host="db",
+            port="5432",
+            dbname="dill_bot_db",
+            user="dill_bot",
+            password=os.getenv("POSTGRES_PASSWORD")
+        )
         return conn
 
     async def ensure_voice_ctx(self, ctx):
@@ -78,22 +76,25 @@ class TTSCog(commands.Cog):
             pass
         else:
             tts_audio = self.voice.generate_audio_bytes(message.content)
-
-            # Save to database
-            cursor = self.db_conn.cursor()
-            cursor.execute(
-                "INSERT INTO tts_history (voice_initial_name, content, audio) VALUES (?, ?, ?)",
-                (self.voice.initialName, message.content, tts_audio),
-            )
-            self.db_conn.commit()
-
-            # Write audio to a .wav file
-            with open("ElevenLabs_tts.wav", mode="wb") as f:
-                f.write(tts_audio)
+            await self.save_tts_to_db(self.voice.initialName, message.content, tts_audio)
 
         # Play audio
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("ElevenLabs_tts.wav"))
         ctx.voice_client.play(source)
+
+    async def save_tts_to_db(self, voice_name, content, tts_audio):
+        with self.db_conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO tts_history (voice_initial_name, content, audio) VALUES (%s, %s, %s)",
+                (voice_name, content, psycopg2.Binary(tts_audio)),
+            )
+        self.db_conn.commit()
+        await self.write_audio_to_file(tts_audio)
+
+
+    async def write_audio_to_file(self, tts_audio):
+        async with aiofiles.open("ElevenLabs_tts.wav", mode="wb") as f:
+            await f.write(tts_audio)
 
     @app_commands.command(name="select_voice", description="Select custom voice")
     async def select_voice(self, interaction: discord.Interaction, voice_name: str):
@@ -116,15 +117,13 @@ class TTSCog(commands.Cog):
     async def play_tts_history(self, interaction: discord.Interaction, voice: str, tts_audio: str):
         await interaction.response.defer()
 
-        cursor = self.db_conn.cursor()
-        cursor.execute("SELECT audio, content FROM tts_history WHERE id = ?", (tts_audio,))
-        query = cursor.fetchall()
+        with self.db_conn.cursor() as cursor:
+            cursor.execute(f"SELECT audio, content FROM tts_history WHERE id = '{tts_audio}'")
+            query = cursor.fetchall()
         audio = query[0][0]
         message = query[0][1]
 
-        # Write audio to a .wav file
-        with open("ElevenLabs_tts.wav", mode="wb") as f:
-            f.write(audio)
+        await self.write_audio_to_file(audio)
 
         await self.ensure_voice_interaction(interaction)
 
@@ -139,30 +138,28 @@ class TTSCog(commands.Cog):
 
     @play_tts_history.autocomplete(name="voice")
     async def play_history_voice_autocomplete(self, interaction: discord.Interaction, value: str):
-        cursor = self.db_conn.cursor()
-        cursor.execute("SELECT DISTINCT voice_initial_name FROM tts_history")
-        voice_names = [row[0] for row in cursor.fetchall()]
+        with self.db_conn.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT voice_initial_name FROM tts_history")
+            voice_names = [row[0] for row in cursor.fetchall()]
 
-        suggestions = [
-            app_commands.Choice(name=name, value=name) for name in voice_names if name.lower().startswith(value.lower())
-        ]
-        return suggestions
+            suggestions = [
+                app_commands.Choice(name=name, value=name) for name in voice_names if name.lower().startswith(value.lower())
+            ]
+            return suggestions
 
     @play_tts_history.autocomplete(name="tts_audio")
     async def play_history_message_autocomplete(self, interaction: discord.Interaction, value: str):
         selected_voice = interaction.namespace.voice
 
-        cursor = self.db_conn.cursor()
-        cursor.execute("SELECT content, id FROM tts_history WHERE voice_initial_name = ?", (selected_voice,))
-        query = cursor.fetchall()[::-1]
+        with self.db_conn.cursor() as cursor:
+            cursor.execute(f"SELECT content, id FROM tts_history WHERE voice_initial_name = '{selected_voice}'")
+            query = cursor.fetchall()[::-1]
 
         if value == "":
-            suggestions = [app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1])) for msg_audio in query][
-                :25
-            ]
+            suggestions = [app_commands.Choice(name=f"ID: {msg_audio[1]} | {msg_audio[0]}"[:99], value=str(msg_audio[1])) for msg_audio in query][:25]
         else:
             suggestions = [
-                app_commands.Choice(name=msg_audio[0][:99], value=str(msg_audio[1]))
+                app_commands.Choice(name=f"ID: {msg_audio[1]} | {msg_audio[0]}"[:99], value=str(msg_audio[1]))
                 for msg_audio in query
                 if value.lower() in msg_audio[0].lower()
             ][:25]

@@ -1,25 +1,32 @@
 version: '3.9'
 services:
   dill_bot:
-    image: ./dill_bot
+    build: .
+    image: dill_bot:latest
     restart: always
-    volumes:
-      - ./dill_bot/src:/src
-    command: python /src/bot.py
+    command: python ./src/bot.py
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - ELEVENLABS_TOKEN=${ELEVENLABS_TOKEN}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
-    - db
-    - redis
+      - db
+      - redis
 
   db:
     image: postgres:latest
     restart: always
     volumes:
-      - ./dill_bot/postgres:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: <your-db-password>
+      POSTGRES_USER: dill_bot
+      POSTGRES_DB: dill_bot_db
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
       
   redis:
     image: redis:latest
     restart: always
     volumes:
-      - ./dill_bot/redis:/data
+      - ./data/redis:/data
