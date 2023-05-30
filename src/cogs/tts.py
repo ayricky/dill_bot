@@ -161,7 +161,7 @@ class TTSCog(commands.Cog):
             suggestions = [
                 app_commands.Choice(name=f"ID: {msg_audio[1]} | {msg_audio[0]}"[:99], value=str(msg_audio[1]))
                 for msg_audio in query
-                if value.lower() in msg_audio[0].lower()
+                if value.lower() in f"ID: {msg_audio[1]} | {msg_audio[0]}".lower()
             ][:25]
 
         return suggestions
