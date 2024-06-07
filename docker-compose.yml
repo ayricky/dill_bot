@@ -11,6 +11,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - db
+    env_file:
+      - .env 
 
   db:
     image: postgres:latest
@@ -23,4 +25,5 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
-      
+    env_file:
+      - .env
