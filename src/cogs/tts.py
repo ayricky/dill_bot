@@ -16,37 +16,22 @@ class TTSCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
-        self.voice = self.all_voices["Joe Biden"]
+        self.voice = self.all_custom_voices["Bokimane"]
         self.voice_suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
-        self.db_conn = self.init_db()
-
-    @property
-    def all_voices(self):
-        return {voice.get_name(): voice for voice in self.user.get_all_voices()}
+        # self.audio = self.voice.generate_audio_v3("test")
+        # breakpoint()
+        # self.db_conn = self.init_db()
 
     @property
     def all_custom_voices(self):
         return {
-            name: voice
-            for name, voice in self.all_voices.items()
-            if name not in ["Rachel", "Domi", "Bella", "Antoni", "Elli", "Josh", "Arnold", "Adam", "Sam"]
+            voice.get_name(): voice
+            for voice in self.user.get_all_voices()
+            if voice.category == "cloned"
         }
 
     def init_db(self):
-        conn = psycopg2.connect(
-            host="db", port="5432", dbname="dill_bot_db", user="dill_bot", password=os.getenv("POSTGRES_PASSWORD")
-        )
-        return conn
-
-    async def ensure_voice_ctx(self, ctx):
-        if ctx.voice_client is None:
-            if ctx.author.voice:
-                await ctx.author.voice.channel.connect()
-            else:
-                await ctx.send("You are not connected to a voice channel.")
-                raise commands.CommandError("Author not connected to a voice channel.")
-        elif ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
+        return psycopg2.connect(host="db", port="5432", dbname="dill_bot_db", user="dill_bot", password=os.getenv("POSTGRES_PASSWORD"))
 
     async def ensure_voice_interaction(self, interaction: discord.Interaction):
         member = interaction.guild.get_member(interaction.user.id)
@@ -56,27 +41,9 @@ class TTSCog(commands.Cog):
             else:
                 await interaction.response.send_message("You are not connected to a voice channel.")
                 raise commands.CommandError("Author not connected to a voice channel.")
+            
         elif interaction.guild.voice_client.is_playing():
             interaction.guild.voice_client.stop()
-
-    @commands.Cog.listener("on_message")
-    async def tts(self, message):
-        if message.channel.id != 1081842185135198208:
-            return
-
-        ctx = await self.bot.get_context(message)
-        await self.ensure_voice_ctx(ctx)
-
-        if message.content.lower() == "replay":
-            # No need to fetch from the database; just play the existing .wav file
-            pass
-        else:
-            tts_audio = self.voice.generate_audio_bytes(message.content)
-            await self.save_tts_to_db(self.voice.initialName, message.content, tts_audio)
-
-        # Play audio
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("ElevenLabs_tts.wav"))
-        ctx.voice_client.play(source)
 
     async def save_tts_to_db(self, voice_name, content, tts_audio):
         with self.db_conn.cursor() as cursor:
@@ -107,6 +74,17 @@ class TTSCog(commands.Cog):
     @select_voice.autocomplete(name="voice_name")
     async def voice_autocomplete(self, interaction: discord.Interaction, value: str):
         return self.voice_suggestions
+    
+    @app_commands.command(name="tts", description="Text to speech")
+    async def tts(self, interaction: discord.Interaction, text: str):
+        await interaction.response.defer()
+        tts_audio = self.voice.generate_audio_v3(text)
+        await self.save_tts_to_db(self.voice.name, text, tts_audio[0].result())
+
+        await self.write_audio_to_file(tts_audio[0].result())
+        await self.ensure_voice_interaction(interaction)
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("ElevenLabs_tts.wav"))
+        interaction.guild.voice_client.play(source)
 
     @app_commands.command(name="play_tts_history", description="Play historical tts requests by voice")
     async def play_tts_history(self, interaction: discord.Interaction, voice: str, tts_audio: str):
@@ -116,18 +94,10 @@ class TTSCog(commands.Cog):
             cursor.execute(f"SELECT audio, content FROM tts_history WHERE id = '{tts_audio}'")
             query = cursor.fetchall()
         audio = query[0][0]
-        message = query[0][1]
 
         await self.write_audio_to_file(audio)
-
         await self.ensure_voice_interaction(interaction)
 
-        embed = Embed(title="Playing TTS History", color=randint(0, 0xFFFFFF))
-        embed.add_field(name="Voice", value=voice, inline=False)
-        embed.add_field(name="TTS", value=message, inline=False)
-        await interaction.followup.send(embed=embed)
-
-        # Play audio
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("ElevenLabs_tts.wav"))
         interaction.guild.voice_client.play(source)
 

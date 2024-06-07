@@ -3,13 +3,12 @@ name = "dill-bot"
 version = "0.1.0"
 description = "Discord bot for Dill Do server"
 authors = ["ayricky <marianoricardo97@gmail.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
 aiofiles = "^23.1.0"
-discord-py = {extras = ["voice"], version = "^2.2.2"}
-elevenlabslib = "^0.4.2"
+discord-py = {extras = ["voice"], version = "^2.3.2"}
+elevenlabslib = "^0.22.3"
 psycopg2-binary = "^2.9.6"
 youtube-dl = "*"
 requests = "^2.28.2"
