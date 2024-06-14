@@ -14,7 +14,7 @@ services:
       - .env 
 
   db:
-    image: postgres:latest
+    image: postgres:15
     restart: always
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
