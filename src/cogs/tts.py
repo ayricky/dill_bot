@@ -18,9 +18,7 @@ class TTSCog(commands.Cog):
         self.user = ElevenLabsUser(os.getenv("ELEVENLABS_TOKEN"))
         self.voice = self.all_custom_voices["Bokimane"]
         self.voice_suggestions = [app_commands.Choice(name=name, value=name) for name in self.all_custom_voices.keys()]
-        # self.audio = self.voice.generate_audio_v3("test")
-        # breakpoint()
-        # self.db_conn = self.init_db()
+        self.db_conn = self.init_db()
 
     @property
     def all_custom_voices(self):
